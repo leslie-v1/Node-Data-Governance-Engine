@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  users     User[]
+  dataVaults DataVault[]
+  requestsAsRequester DataRequest[] @relation("requester_org")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  email          String   @unique
+  password       String
+  role           UserRole @default(USER)
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  reviewedRequests DataRequest[] @relation("request_reviewer")
+  auditsPerformed RequestAudit[]
+}
+
+model DataVault {
+  id          String   @id @default(uuid())
+  owner       Organization @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  requests    DataRequest[]
+}
+
+model DataRequest {
+  id           String        @id @default(uuid())
+  requester    Organization  @relation("requester_org", fields: [requesterId], references: [id])
+  requesterId  String
+  dataVault    DataVault     @relation(fields: [dataVaultId], references: [id])
+  dataVaultId  String
+  status       RequestStatus @default(PENDING)
+  requestedAt  DateTime      @default(now())
+  approvedAt   DateTime?
+  reviewer     User?         @relation("request_reviewer", fields: [reviewerId], references: [id])
+  reviewerId   String?
+  notes        String?
+  audits       RequestAudit[]
+}
+
+model RequestAudit {
+  id            String      @id @default(uuid())
+  dataRequest   DataRequest @relation(fields: [dataRequestId], references: [id])
+  dataRequestId String
+  action        String
+  performedBy   User?       @relation(fields: [performedById], references: [id])
+  performedById String?
+  timestamp     DateTime    @default(now())
+  details       String?
+}

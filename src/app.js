@@ -1,6 +1,7 @@
 // src/app.js (ES module)
 import express from 'express';
 import cors from 'cors';
+import routes from './routes/index.js';
 
 const app = express();
 
@@ -16,5 +17,9 @@ app.use(express.json()); // parse JSON bodies
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'Node Data Governance Engine API is operational.' });
 });
+
+
+
+app.use('/api', routes); // <-- All feature routes are now accessible under /api
 
 export default app;

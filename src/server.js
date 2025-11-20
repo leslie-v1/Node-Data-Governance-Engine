@@ -2,6 +2,7 @@
 
 import app from './app.js'; 
 import config from  '../src/config/index.js'; // You'll create this in src/config/index.js
+import prisma from './config/db.js';
 
 const PORT = config.PORT || 3000;
 
