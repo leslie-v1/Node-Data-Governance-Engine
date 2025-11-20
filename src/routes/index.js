@@ -4,10 +4,10 @@ import { Router } from 'express';
 const router = Router();
 
 // Import all feature-specific routers
-import authRoutes from './auth.route';
-import dataRoutes from './data.route';
-import requestRoutes from './request.route';
-import auditRoutes from './audit.route'; // Example
+import authRoutes from './auth.route.js';
+import dataRoutes from './data.route.js';
+import requestRoutes from './request.route.js';
+import auditRoutes from './audit.route.js'; // Example
 
 // Define an array of routes with their base paths
 const defaultRoutes = [
