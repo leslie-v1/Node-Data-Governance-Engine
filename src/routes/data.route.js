@@ -1,10 +1,10 @@
 import { Router } from 'express';
+import * as dataController from '../controllers/data.controller.js';
 
 const router = Router();
 
-// Data vault routes (placeholder)
-router.get('/', (req, res) => {
-	res.json({ message: 'Data vault route root (placeholder)' });
-});
+// Data routes wired to controller (MVC)
+router.get('/', dataController.index);
+router.get('/vaults', dataController.listVaults);
 
 export default router;

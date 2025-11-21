@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import * as authController from '../controllers/auth.controller.js';
 
 const router = Router();
 
-// Example auth routes (placeholder)
-router.get('/', (req, res) => {
-	res.json({ message: 'Auth route root (placeholder)' });
-});
+// Auth routes wired to controller (MVC)
+router.get('/', authController.index);
+router.post('/register', authController.register);
+router.post('/login', authController.login);
 
 export default router;
