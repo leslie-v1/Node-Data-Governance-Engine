@@ -1,5 +1,3 @@
-// src/config/db.js
-
 import { PrismaClient } from '@prisma/client';
 
 // Initialize the Prisma Client

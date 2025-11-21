@@ -1,4 +1,4 @@
-import prisma from '../config/db.js';
+import prisma from '../models/prisma/prisma.client.js';
 
 export async function index(req, res) {
   res.json({ message: 'Audit controller root (placeholder)' });
