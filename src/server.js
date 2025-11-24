@@ -1,21 +1,10 @@
 // src/server.js
 
-import app from './app.js'; 
-import config from  './config/config.js'; // You'll create this in src/config/index.js
-import prisma from '../src/models/prisma/prisma.client.js';
-import dataRoutes from '../src/routes/APIs/data.route.js'
-import dataReqRoutes from '../src/routes/APIs/request.route.js'
-import authRoutes from '../src/routes/APIs/auth.route.js'
-
-
-
+import app from './app.js';
+import config from './config/config.js';
 
 
 //routes
-app.use('/auth', authRoutes);
-app.use('/data',dataRoutes); 
-app.use('/request',dataReqRoutes); 
-
 
 
 
