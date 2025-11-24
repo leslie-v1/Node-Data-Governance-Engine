@@ -1,7 +1,7 @@
 // src/app.js (ES module)
 import express from 'express';
 import cors from 'cors';
-import routes from './routes/index.js';
+
 
 const app = express();
 
@@ -20,6 +20,6 @@ app.get('/', (req, res) => {
 
 
 
-app.use('/api', routes); // <-- All feature routes are now accessible under /api
+
 
 export default app;
