@@ -14,14 +14,14 @@ function authMiddleware(req, res, next) {
 
     try {
         // 3. Verify the token using the secret key
-        const decoded = verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET);
 
         
         req.user = {
             id: decoded.userId,
             email: decoded.email,
             role: decoded.role,
-            orgId: decoded.orgId,
+            organizationId: decoded.organizationId,
         };
         
         

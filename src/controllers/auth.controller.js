@@ -1,4 +1,3 @@
-
 import authService from '../services/auth.service.js'
 
 /**
@@ -10,44 +9,54 @@ import authService from '../services/auth.service.js'
  */
 async function register(req, res, next) {
     try {
-        const { email, password, orgName, role } = req.body;
+        const { email, password, orgName, role, username } = req.body;
 
         // 1. Basic Input Validation
-        if (!email || !password || !orgName || password.length < 8) {
+        if (!email || !password || !orgName || !username || password.length < 8) {
             return res.status(400).send({ 
-                message: 'Missing required fields (email, password, orgName) or password is too short (min 8 chars).' 
+                message: 'Missing required fields (email, password, orgName, username) or password is too short (min 8 chars).' 
             });
         }
 
-        // 2. Delegate Business Logic to the Service Layer
-        // The service handles password hashing, database insertion, and organization management.
-        const userRole = (role && role.toUpperCase() === 'VIEWER') ? 'VIEWER' : 'ADMIN';
+        const userRole = (role && role.toUpperCase() === 'ADMIN') ? 'ADMIN' : 'USER';
 
-        const newUser = await authService.registerUser(email, password, orgName, userRole);
+        const { token, user: newUser } = await authService.registerUser(email, password, orgName, userRole, username);
 
-        // 3. Send Success Response (User is created, but no token is given on register)
+        // 3. Send Success Response
         return res.status(201).send({
             message: `User registered successfully for Organization: ${orgName}.`,
+            token,
             user: newUser, // User object without the passwordHash
         });
 
     } catch (error) {
         // 4. Handle Specific Errors (e.g., duplicate unique fields)
         if (error.code === 'P2002') { // Prisma error for unique constraint violation
-            return res.status(409).send({ 
-                message: 'Conflict: A user with this email or an organization with this name already exists.' 
+            const target = error.meta?.target;
+            let message = 'Conflict: ';
+            if (target?.includes('username')) {
+                message += 'A user with this username already exists.';
+            } else if (target?.includes('email')) {
+                message += 'A user with this email already exists.';
+            } else if (target?.includes('name')) {
+                message += 'An organization with this name already exists.';
+            } else {
+                message += 'Unique constraint violation.';
+            }
+            return res.status(409).send({
+                message
             });
         }
-        
+
         // Pass to the central error handler middleware
-        next(error); 
+        next(error);
     }
 }
 
 /**
  * Handles user login endpoint.
  * Responsible for input validation and delegating authentication/token issuance to the Service.
- * * @param {object} req - Express request object
+ * * @param {object} req -
  * @param {object} res - Express response object
  * @param {function} next - Express next middleware function
  */
@@ -61,10 +70,22 @@ async function login(req, res, next) {
                 message: 'Email and password are required for login.' 
             });
         }
+        // call service and validate shape
+        const result = await authService.loginUser(email, password);
 
-        // 2. Delegate Authentication and Token Generation to the Service
-        // The service handles password comparison and JWT signing.
-        const { token, user } = await authService.loginUser(email, password);
+        if (!result) {
+            console.error('authService.loginUser returned falsy:', result);
+            return res.status(500).send({ message: 'Authentication service failure.' });
+        }
+
+        // if the service returns { token, user } use those, otherwise adapt as needed
+        const token = result.token ?? result.accessToken ?? null;
+        const user = result.user ?? result.userData ?? null;
+
+        if (!token || !user) {
+            console.error('Unexpected login result shape:', result);
+            return res.status(500).send({ message: 'Authentication did not return required data.' });
+        }
 
         // 3. Send Success Response
         return res.status(200).send({
@@ -74,13 +95,11 @@ async function login(req, res, next) {
         });
 
     } catch (error) {
-        // 4. Handle Service-Generated Authentication Errors
-        // The service might throw a specific error if credentials fail.
         if (error.message === 'Invalid credentials') {
             return res.status(401).send({ message: 'Authentication failed. Invalid email or password.' });
         }
         
-        // Pass to the central error handler middleware
+      
         next(error);
     }
 }

@@ -6,11 +6,9 @@ import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/config.js';
 
 const SALT_ROUNDS = 10;
 
-// --- Private Utility Functions ---
-
 /**
  * Creates a JSON Web Token (JWT) for the authenticated user.
- * @param {object} user - The user object containing id, email, role, and orgId.
+ * @param {object} user - The user object containing id, email, role, and organizationId.
  * @returns {string} The signed JWT token.
  */
 function createToken(user) {
@@ -18,7 +16,7 @@ function createToken(user) {
         userId: user.id,
         email: user.email,
         role: user.role,
-        orgId: user.orgId,
+        organizationId: user.organizationId,
     };
 
     return jwt.sign(
@@ -28,22 +26,21 @@ function createToken(user) {
     );
 }
 
-// --- Public Service Functions ---
 
 /**
  * Registers a new user, hashes the password, and manages organization assignment.
- * Automatically sets the first registered user as ADMIN for a new organization.
  * @param {string} email - User email
  * @param {string} password - Raw password
  * @param {string} orgName - Name of the organization
  * @param {string} role - The user's intended role
- * @returns {object} The newly created user object (without password hash)
+ * @param {string} username - The username
+ * @returns {object} { token, user } - The JWT token and user object (without password hash)
  */
-async function registerUser(email, password, orgName, role) {
+async function registerUser(email, password, orgName, role, username) {
     // 1. Hash the password securely
     const passwordHash = await hash(password, SALT_ROUNDS);
 
-    // Use a transaction to ensure data integrity (user and org updates are atomic)
+    // Use a transaction to ensure data integrity
     const result = await prisma.$transaction(async (tx) => {
         // 2. Find or create the organization
         let organization = await tx.organization.findUnique({
@@ -55,38 +52,35 @@ async function registerUser(email, password, orgName, role) {
                 data: { name: orgName },
             });
         }
-        
+
         // 3. Create the user
         const newUser = await tx.user.create({
             data: {
+                username,
                 email,
-                passwordHash,
-                role: organization.adminUserId ? role : 'ADMIN', // Promote first user to ADMIN if no admin exists
-                orgId: organization.id,
+                password: passwordHash,
+                role: role,
+                organizationId: organization.id,
             },
         });
 
-        // 4. Update the organization if this is the first ADMIN user
-        if (!organization.adminUserId && newUser.role === 'ADMIN') {
-             await tx.organization.update({
-                where: { id: organization.id },
-                data: { adminUserId: newUser.id },
-            });
-        }
-        
+        // 4. Generate JWT token for the new user
+        const token = createToken(newUser);
+
         // Remove password hash before returning the user object
-        const { passwordHash: _, ...userWithoutHash } = newUser;
-        return userWithoutHash
+        const { password: _, ...userWithoutHash } = newUser;
+
+        return { token, user: userWithoutHash };
     });
     return result;
 }
 
 /**
- * Authenticates a user by comparing the password hash and generates a JWT.
- * @param {string} email - User email
- * @param {string} password - Raw password
- * @returns {object} { token, user } - The JWT and user details
- * @throws {Error} if credentials fail
+ * Authenticates a user with email and password credentials.
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {object} { token, user }
+ * @throws {Error} 
  */
 async function loginUser(email, password) {
     // 1. Find the user by email, include org details
@@ -100,7 +94,7 @@ async function loginUser(email, password) {
     }
 
     // 2. Compare the raw password with the stored hash
-    const isValidPassword = await compare(password, user.passwordHash);
+    const isValidPassword = await compare(password, user.password);
 
     if (!isValidPassword) {
         throw new Error('Invalid credentials');
@@ -110,7 +104,7 @@ async function loginUser(email, password) {
     const token = createToken(user);
     
     // 4. Prepare user object for response (remove sensitive info)
-    const { passwordHash, ...userWithoutHash } = user;
+    const { password: _, ...userWithoutHash } = user;
 
     return { 
         token, 
