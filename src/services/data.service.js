@@ -1,4 +1,5 @@
 import prisma from '../prisma/prisma.client.js';
+import auditService from '../services/data.service.js'
 
 /**
  * Creates a new metadata record for a data asset in the DataVault.
@@ -27,6 +28,16 @@ async function createDataAsset(name, description, category, orgId, ownerId) {
     });
 
     return newAsset;
+
+
+    await auditService.logAction(
+        'DATA_UPLOAD', 
+        ownerId, 
+        newAsset.id, 
+        { orgId: orgId, assetName: name, description: description } // Log critical details
+    );
+    
+    return newAsset;
 }
 
 /**
@@ -40,7 +51,7 @@ async function getAssetsByOrganization(orgId) {
         where: {
             orgId: orgId, 
         },
-        // Optionally include the uploader's name or organization details
+
         include: {
             uploader: {
                 select: { email: true, id: true },
