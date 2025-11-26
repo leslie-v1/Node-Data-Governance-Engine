@@ -1,17 +1,15 @@
-# Refactoring Backend File Structure TODO
+# Refactor DB Connection to Latest Prisma
 
-- [ ] Create new directories: src/models/, src/models/prisma/
-- [ ] Move backend/prisma/schema.prisma to src/models/prisma/schema.prisma
-- [ ] Create src/models/prisma.client.js with content from config/db.js
-- [ ] Delete config/db.js
-- [ ] Rename src/config/index.js to src/config/config.js
-- [ ] Rename src/utils/index.js to src/utils/email.util.js
-- [ ] Rename src/routes/index.js to src/routes/index.route.js
-- [ ] Rename src/middlewares/ directory to src/middleware/
-- [ ] Rename src/middleware/index.js to src/middleware/auth.middleware.js
-- [ ] Create empty src/middleware/admin.middleware.js
-- [ ] Create empty src/services/data.service.js
-- [ ] Create empty src/services/request.service.js
-- [ ] Create empty src/services/audit.service.js
-- [ ] Find and update import paths in affected files (app.js, controllers, services, routes)
-- [ ] Test the application for import errors
+## Tasks
+- [ ] Update package.json to Prisma 7.0.1 and @prisma/client 7.0.1
+- [ ] Fix prisma.config.ts schema path to './src/prisma/schema.prisma'
+- [ ] Update import paths in JS files to '../prisma/prisma.client.js'
+  - [ ] backend/src/controllers/request.controller.js
+  - [ ] backend/src/services/auth.service.js
+  - [ ] backend/src/services/test.service.js
+  - [ ] backend/src/services/data.service.js
+  - [ ] backend/src/controllers/audit.controller.js
+- [ ] Fix test.service.js import to only import prisma
+- [ ] Run npm install to update dependencies
+- [ ] Run npx prisma generate
+- [ ] Test the application to ensure DB connection works

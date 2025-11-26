@@ -1,7 +1,8 @@
 import { hash, compare } from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import prisma from '../models/prisma/prisma.client.js'; 
+import prisma from '../prisma/prisma.client.js';
+
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../config/config.js';
 
 const SALT_ROUNDS = 10;

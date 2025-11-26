@@ -1,5 +1,5 @@
 import dataService from '../services/data.service.js';
-import { prisma, connectDB } from '../models/prisma/prisma.client.js';
+import prisma from '../prisma/prisma.client.js';
 
 // --- Configuration ---
 // These IDs must match existing records in your database for the test to pass.
@@ -27,9 +27,6 @@ async function cleanup() {
  */
 async function runTests() {
     try {
-        // Ensure database connection is established
-        await connectDB();
-        
         // --- Test Setup ---
         // Cleanup previous runs for idempotent testing
         await cleanup(); 

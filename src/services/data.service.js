@@ -1,4 +1,4 @@
-import  prisma  from '../models/prisma/prisma.client.js';
+import prisma from '../prisma/prisma.client.js';
 
 /**
  * Creates a new metadata record for a data asset in the DataVault.

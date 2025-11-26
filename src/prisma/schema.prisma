@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -17,7 +18,7 @@ enum RequestStatus {
   REJECTED
 }
 
-model organization {
+model Organization {
   id        String  @id @default(uuid())
   name      String   @unique
   createdAt DateTime @default(now())
@@ -32,7 +33,7 @@ model User {
   email          String   @unique
   password       String
   role           UserRole @default(USER)
-  organization   organization? @relation(fields: [organizationId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -42,7 +43,7 @@ model User {
 
 model DataVault {
   id          String   @id @default(uuid())
-  owner       organization @relation(fields: [ownerId], references: [id])
+  owner       Organization @relation(fields: [ownerId], references: [id])
   ownerId     String
   name        String
   description String?
@@ -52,7 +53,7 @@ model DataVault {
 
 model DataRequest {
   id           String        @id @default(uuid())
-  requester    organization  @relation("requester_org", fields: [requesterId], references: [id])
+  requester    Organization  @relation("requester_org", fields: [requesterId], references: [id])
   requesterId  String
   dataVault    DataVault     @relation(fields: [dataVaultId], references: [id])
   dataVaultId  String

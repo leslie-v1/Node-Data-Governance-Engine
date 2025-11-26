@@ -1,4 +1,4 @@
-import prisma from '../models/prisma/prisma.client.js'
+import prisma from '../prisma/prisma.client.js'
 
 export async function index(req, res) {
   res.json({ message: 'Request controller root (placeholder)' });
